@@ -2,6 +2,7 @@ package com.bbw.webshopbackend.controller;
 
 import com.bbw.webshopbackend.model.Product;
 import com.bbw.webshopbackend.model.ProductRepository;
+import com.bbw.webshopbackend.service.Database;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,24 +23,24 @@ public class ProductController {
     public @ResponseBody
     Iterable<Product> getAllProducts() {
         // Create a variable for the connection string.
-        String connectionUrl = "jdbc:mysql://localhost:3306/webshop?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
+        Database database = new Database();
+        Statement stmt = database.getSqlConnection();
         List<Product> products = new ArrayList<>();
-        try (Connection con = DriverManager.getConnection(connectionUrl, "root", "root"); Statement stmt = con.createStatement();) {
+        try {
             String SQL = "SELECT * FROM products";
-            ResultSet rs = stmt.executeQuery(SQL);
-            // Iterate through the data in the result set and display it.
-            while (rs.next()) {
+            ResultSet productResult = null;
+            productResult = stmt.executeQuery(SQL);
+            while (productResult.next()) {
                 Product product = new Product();
-                product.setId(rs.getInt("id"));
-                product.setName(rs.getString("product_name"));
-                product.setPrice(rs.getDouble("product_price"));
-                product.setDescription(rs.getString("product_description"));
+                product.setId(productResult.getInt("id"));
+                product.setName(productResult.getString("product_name"));
+                product.setPrice(productResult.getDouble("product_price"));
+                product.setDescription(productResult.getString("product_description"));
                 products.add(product);
             }
         }
-        // Handle any errors that may have occurred.
-        catch (SQLException e) {
-            e.printStackTrace();
+        catch (SQLException ex) {
+            ex.printStackTrace();
         }
         return products;
     }
